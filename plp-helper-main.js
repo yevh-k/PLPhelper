@@ -2321,10 +2321,9 @@
     return { version: '2.1.30-remote', remote: true, mapSize: m.size, sample: Object.fromEntries([...m.entries()].slice(0, 10)) };
   };
 })();
-
 /* ╔═══════════════════════════════════════════════════════════════╗
    ║  SECTION 7 – HIGH RISK ACCESS UNDERLINE                      ║
-   ║  Marks/highlights logins with High Risk permission access.    ║
+   ║  Marks High Risk access logins in Pick Tower + other tables.  ║
    ╚═══════════════════════════════════════════════════════════════╝ */
 (function () {
   'use strict';
@@ -2338,13 +2337,15 @@
   const SOURCE = 'High Risk permission.xlsx';
 
   const css = `
-    td.plp-hr-login-cell {
-      text-decoration-line: underline;
-      text-decoration-style: double;
-      text-decoration-color: #b10252;
-      text-underline-offset: 2px;
-      font-weight: 700;
+    .plp-hr-login-text {
+      text-decoration-line: underline !important;
+      text-decoration-style: double !important;
+      text-decoration-color: #b10252 !important;
+      text-underline-offset: 2px !important;
+      font-weight: 800 !important;
+      color: inherit !important;
     }
+    td.plp-hr-login-cell { font-weight: 700; }
     td.plp-hr-login-cell .uph-badge,
     td.plp-hr-login-cell .eta-picker,
     td.plp-hr-login-cell .plp-task-badge,
@@ -2366,24 +2367,89 @@
     .toUpperCase()
     .trim();
 
+  function stripDecorationsForLoginRead(clone) {
+    clone.querySelectorAll('.uph-badge,.eta-picker,.plp-task-badge,.plp-unpr-badge,.plp-idle-badge').forEach(x => x.remove());
+    return clone;
+  }
+
   function plainLoginFromCell(td) {
     if (!td) return '';
-    const clone = td.cloneNode(true);
-    clone.querySelectorAll('.uph-badge,.eta-picker,.plp-task-badge,.plp-unpr-badge,.plp-idle-badge,.plp-hr-marker').forEach(x => x.remove());
+
+    // If already wrapped, this is the safest source.
+    const hrSpan = td.querySelector(':scope > .plp-hr-login-text');
+    if (hrSpan) return cleanLogin(T(hrSpan));
+
+    // Pick Tower cell format is usually: TEXT_NODE(login) + UPH badge.
+    for (const node of [...td.childNodes]) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const login = cleanLogin(node.textContent);
+        if (login) return login;
+      }
+    }
+
+    // Generic fallback for Totes in Transit / other normal tables.
+    const clone = stripDecorationsForLoginRead(td.cloneNode(true));
     return cleanLogin(T(clone));
+  }
+
+  function unwrapLogin(td) {
+    const span = td.querySelector(':scope > .plp-hr-login-text');
+    if (!span) return;
+    span.replaceWith(document.createTextNode(span.textContent || ''));
+  }
+
+  function wrapLoginText(td, login) {
+    let span = td.querySelector(':scope > .plp-hr-login-text');
+    if (span) { span.textContent = login; return; }
+
+    // Prefer replacing the direct text node so UPH badge remains untouched.
+    for (const node of [...td.childNodes]) {
+      if (node.nodeType === Node.TEXT_NODE && cleanLogin(node.textContent) === login) {
+        span = document.createElement('span');
+        span.className = 'plp-hr-login-text';
+        span.textContent = node.textContent.trim() || login;
+        node.replaceWith(span);
+        return;
+      }
+    }
+
+    // Fallback: preserve badges/elements and insert login span at the beginning.
+    const kept = [...td.childNodes].map(n => n.cloneNode(true));
+    td.textContent = '';
+    span = document.createElement('span');
+    span.className = 'plp-hr-login-text';
+    span.textContent = login;
+    td.appendChild(span);
+    kept.forEach(n => { td.appendChild(document.createTextNode(' ')); td.appendChild(n); });
+  }
+
+  function tableType(tbl) {
+    if (tbl.closest('.pt_zone')) return 'pickTower';
+    if (tbl.closest('#tt_panel') || tbl.closest('#tt_wrap')) return 'totesInTransit';
+    if (tbl.id === 'pickLists_table') return 'pickLists';
+    return 'other';
+  }
+
+  function findUserIndexes(tbl) {
+    const hdr = tbl.querySelector('tr');
+    if (!hdr) return [];
+    const headers = [...hdr.querySelectorAll('th')].map(th => norm(T(th)));
+    const indexes = [];
+    headers.forEach((h, i) => {
+      if (h === 'user' || h === 'login' || h.startsWith('user ') || h.startsWith('login ')) indexes.push(i);
+    });
+    // Pick Tower has User as the last column; fallback protects against translated/styled headers.
+    if (!indexes.length && tbl.closest('.pt_zone') && headers.length) indexes.push(headers.length - 1);
+    return indexes;
   }
 
   function applyHighRiskUnderline() {
     let marked = 0;
+    const stats = { pickTower: 0, totesInTransit: 0, pickLists: 0, other: 0 };
     document.querySelectorAll('table').forEach(tbl => {
-      const hdr = tbl.querySelector('tr');
-      if (!hdr) return;
-      const headers = [...hdr.querySelectorAll('th')].map(th => norm(T(th)));
-      const userIndexes = [];
-      headers.forEach((h, i) => {
-        if (h === 'user' || h === 'login' || h.startsWith('user ') || h.startsWith('login ')) userIndexes.push(i);
-      });
+      const userIndexes = findUserIndexes(tbl);
       if (!userIndexes.length) return;
+      const type = tableType(tbl);
       [...tbl.querySelectorAll('tr')].slice(1).forEach(row => {
         userIndexes.forEach(i => {
           const td = row.children[i];
@@ -2392,12 +2458,17 @@
           const isHR = !!login && HIGH_RISK_LOGINS.has(login);
           td.classList.toggle('plp-hr-login-cell', isHR);
           if (isHR) {
-            td.title = (td.title ? td.title + ' | ' : '') + 'High Risk access: YES (' + SOURCE + ')';
+            wrapLoginText(td, login);
+            if (!/High Risk access/i.test(td.title || '')) td.title = (td.title ? td.title + ' | ' : '') + 'High Risk access: YES (' + SOURCE + ')';
             marked++;
+            stats[type] = (stats[type] || 0) + 1;
+          } else {
+            unwrapLogin(td);
           }
         });
       });
     });
+    window.__PLP_HIGH_RISK_LAST_STATS__ = { marked, stats, ts: Date.now() };
     return marked;
   }
 
@@ -2410,18 +2481,23 @@
   function boot() {
     schedule();
     const mo = new MutationObserver(schedule);
-    try { mo.observe(document.body, { childList: true, subtree: true }); } catch (_) {}
+    try { mo.observe(document.body, { childList: true, subtree: true, characterData: true }); } catch (_) {}
     setInterval(schedule, 3000);
   }
   if (document.body) boot();
   else document.addEventListener('DOMContentLoaded', boot, { once: true });
 
   window.PLP_HIGH_RISK_DIAG = function () {
+    const markedNow = applyHighRiskUnderline();
     return {
       source: SOURCE,
       sourceUrl: 'https://cevalogisticsoffice365-my.sharepoint.com/personal/marcin_poborski_cevalogistics_com/Documents/High%20Risk%20permission.xlsx',
       embeddedLogins: HIGH_RISK_LOGINS.size,
-      markedNow: applyHighRiskUnderline(),
+      markedNow,
+      stats: window.__PLP_HIGH_RISK_LAST_STATS__ && window.__PLP_HIGH_RISK_LAST_STATS__.stats,
+      pickTowerTables: document.querySelectorAll('.pt_zone table').length,
+      visiblePickTower: [...document.querySelectorAll('.pt_zone table tr td.plp-hr-login-cell')].map(td => plainLoginFromCell(td)).filter(Boolean).slice(0, 30),
+      visibleTotes: [...document.querySelectorAll('#tt_panel table tr td.plp-hr-login-cell,#tt_wrap table tr td.plp-hr-login-cell')].map(td => plainLoginFromCell(td)).filter(Boolean).slice(0, 30),
       sample: [...HIGH_RISK_LOGINS].slice(0, 12)
     };
   };
