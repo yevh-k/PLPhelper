@@ -1,3 +1,4 @@
+/* PLP HELPER remote main for loader - v2.1.33 HR AutoApply */
 /* ╔═══════════════════════════════════════════════════════════════╗
    ║  SECTION 1 — TRSL BRIDGE                                     ║
    ║  Слухає повідомлення від PLP (BroadcastChannel/LS).           ║
@@ -2329,10 +2330,8 @@
   'use strict';
   if (window.__PLP_HIGH_RISK_ACCESS__) return;
   window.__PLP_HIGH_RISK_ACCESS__ = true;
+  try { if (typeof unsafeWindow !== 'undefined') unsafeWindow.__PLP_HIGH_RISK_ACCESS__ = true; } catch (_) {}
 
-  // Source file used to build this embedded list:
-  // https://cevalogisticsoffice365-my.sharepoint.com/personal/marcin_poborski_cevalogistics_com/Documents/High%20Risk%20permission.xlsx
-  // NOTE: the list is embedded to avoid SharePoint/CORS/XLSX parsing issues in Grafana.
   const HIGH_RISK_LOGINS = new Set(["BURZYNSM", "JACHYMD", "SLOWIKG", "DADUND", "KROMAT", "HORYKA", "DURALM", "VASEVIK", "KICZML", "KOWALM", "ZUBAJ", "KARPAW", "WIKTOK", "ZIELINK", "TOKARCZL", "SLONOL", "POPIELM", "STOCHELB", "DIACHENA", "ARIFOA", "AITKUR", "GVALIM", "BOIKOR", "KOZIELM", "PUSTOVS", "JEDYNAM", "DUDCHET", "ROMANA", "ANASTASD", "BAHATI", "AKISIO", "HALAHAV", "OLENA", "KOWALSW", "SHVET", "SOLOKL", "VELMOA", "SWIATEKL", "ZALEPAM", "POBORM", "SERAFID", "PLAKSYVYIR", "BATAUU", "WOJCIA", "ZAJACA", "JUSZCZAKA", "PRUSZJ", "CAPAJAM", "SLABOUSR", "MALISZEP", "BARANOVB", "WASIKM", "BOKHIV", "MEDOVA", "VOROBV", "KHOKO", "OSHURI", "POLISOL", "DEMIAM", "ZARUBO", "SMOLIV", "PRIADKO", "HARMAH", "SHEVCK", "PAWLUP", "SUKHOY", "BARANA", "GRABOO", "GAVRIJ", "LUBASR", "NOWICKIA", "SZOSTA", "URBANEKK", "BUKOFAJK", "BEKSIAKV", "JACYNAP", "DIEMIENTIT", "WASZCZAK", "PIORKOP", "FORMENAN", "DIDYCHD", "USARM", "WRONAI", "GRZEJSZCZB", "KASZUBAD", "DRABIKP", "JAKUBCZYKD", "LESZCZUK", "RYCHLIK", "ROSADA", "HORBAJCI", "GREDZIP", "GAJDZIND", "GALUSE", "TYKHONIA", "OWCZARW", "BAUERK", "PEJASD", "NAPIER", "DEONIZIAKM", "ZABLOTR", "MOTYLW", "PANTILIM", "KOWALAG", "IVANOVAD", "BORYSKA", "ANTONEY", "PASAL", "BIDNOM", "PASLIU", "OSYPOVAH", "BUTKOY", "STUPALI", "OLIINYKO", "VORONK", "LUBET", "VARENI", "VASTRN", "PIETRAK", "PANTILIT", "LUKANO", "KOVBIU", "OTSALNAT", "DOLZHNA", "KOLESE", "ZHMUDV", "MELESK", "STRILEV", "SZYDLD", "NIECKULAM", "KOVALG", "KUZNETK", "MAZURAA", "ZIELINJ", "WILCZYK", "NALYVAD", "FORTUD", "BLATKIET", "WOZNIAKP", "MALIND", "WASINS", "SPASR", "ZABLOTY", "OWCZARJ", "POMALNO", "ADACHBA", "DREJKOP", "DYKN", "BROSP", "RYMARS", "LEBEDI", "MUNTE", "TSAPENO", "SMOLEK", "SHMATMA", "POPOVAO", "SHYNKA", "BUINA", "GAJOSM", "LITWIG", "VAKARN", "LUKIAR", "HRYBHOHA", "CHORNOT", "ZEMLIAY", "DENYSOVA", "CHEMYS", "KONOVO", "KOWALD", "LELETI", "KHARCA", "KUZNIM", "ANIKIIA", "GELLESD", "MROCZKOA", "YEREMN", "ZYKIND", "WOLBAA", "PESTKOMA", "KURPIK", "CHERNS", "ANTONOS", "SHCHERO", "BASIAS", "KOSTEV", "DZIVASAL", "SPIRIO", "STANIR", "ZAKARIAN", "HAWRYLM", "IVANIDI", "MASLOIN", "ALIMOY", "NAWROP", "SMILIV", "BOLTIANA", "MURSAT", "MUSHEN", "HOLSHR", "ZAKHARY", "DAMASKIH", "WATRASK", "WERESK", "ALEKSIV", "DEMKA", "DOMORI", "HAVRYLO", "PIECHA", "BRYJAE", "OBEREE", "RUSNAKA", "LEVENA", "SHYMANB", "KHOMENA", "VASYLVA", "BEREZV", "DEKOW", "KASACHK", "KREIDUL", "KRIACHL", "BAGINSKAI", "KONOVN", "CHERNA", "MOROZK", "SMIRNO", "TRAMBOVY", "VASILIAN", "KUSHT", "ZWIERZYR", "PIEKARW", "NOVIKOVP", "VOLKOSM", "BIELAK", "MALINI", "KOZAKKH", "RADCHYK", "POCIAM", "SACHU", "ZUIKOV", "IVANOLI", "TRETIA", "VOKHA", "KONOVAV", "BEKP", "VCHERASO", "BUCIORA", "BOHAJCA", "KOWALSM", "KOVALR", "SZOLTYSK", "KASPERM", "RADIONA", "SIRYKS", "KUCHAP", "KOZLOWSB", "KOPIWODAD", "KUCHARA", "HOSPODV", "JARSKIG", "MADEJJ", "ISHCHN", "PIATEA", "MENSH", "SHONIIAH", "HUSIED", "BOZHOS", "OSTROM", "TSYHAA", "RYZHEI", "CHIKIO", "KOLIEY", "NOWAAD", "MYKHALCHA", "NESTEV", "ZERKIT", "PAVLIY", "KASPA", "WOJDOS", "PLYSKAO", "LOBIVK", "LEBEM", "JAROSZA", "CZAJKOWM", "FUJARL", "KOMISA", "DUBOVO", "ILIKHM", "USARCZ", "MAREKM", "BACALO", "SOBCZUJ", "GODYNW", "SACHARM", "SAJEWIM", "ZAKRZEWSKP", "MELNYCHUKY", "MROCZEA", "LOBINP", "ANDROK", "KARPEY", "OBLIK", "DLUZNIAKE", "KIEDAJ", "ROZMUR", "HOFFMANNJ", "KONDRM", "MARCIK", "GOLECW", "OSOJCAT", "SENDOM", "MASIUKS", "KOSTO", "MARSZR", "WOJTCZAR", "URBAND", "KIRIUK", "BURENS"]);
   const SOURCE = 'High Risk permission.xlsx';
 
@@ -2361,11 +2360,7 @@
 
   const T = el => (el && (el.textContent || '').trim()) || '';
   const norm = s => String(s || '').replace(/\s+/g, ' ').trim().toLowerCase();
-  const cleanLogin = s => String(s || '')
-    .split(';')[0]
-    .replace(/[^A-Z0-9]/gi, '')
-    .toUpperCase()
-    .trim();
+  const cleanLogin = s => String(s || '').split(';')[0].replace(/[^A-Z0-9]/gi, '').toUpperCase().trim();
 
   function stripDecorationsForLoginRead(clone) {
     clone.querySelectorAll('.uph-badge,.eta-picker,.plp-task-badge,.plp-unpr-badge,.plp-idle-badge').forEach(x => x.remove());
@@ -2374,20 +2369,14 @@
 
   function plainLoginFromCell(td) {
     if (!td) return '';
-
-    // If already wrapped, this is the safest source.
     const hrSpan = td.querySelector(':scope > .plp-hr-login-text');
     if (hrSpan) return cleanLogin(T(hrSpan));
-
-    // Pick Tower cell format is usually: TEXT_NODE(login) + UPH badge.
     for (const node of [...td.childNodes]) {
       if (node.nodeType === Node.TEXT_NODE) {
         const login = cleanLogin(node.textContent);
         if (login) return login;
       }
     }
-
-    // Generic fallback for Totes in Transit / other normal tables.
     const clone = stripDecorationsForLoginRead(td.cloneNode(true));
     return cleanLogin(T(clone));
   }
@@ -2401,8 +2390,6 @@
   function wrapLoginText(td, login) {
     let span = td.querySelector(':scope > .plp-hr-login-text');
     if (span) { span.textContent = login; return; }
-
-    // Prefer replacing the direct text node so UPH badge remains untouched.
     for (const node of [...td.childNodes]) {
       if (node.nodeType === Node.TEXT_NODE && cleanLogin(node.textContent) === login) {
         span = document.createElement('span');
@@ -2412,8 +2399,6 @@
         return;
       }
     }
-
-    // Fallback: preserve badges/elements and insert login span at the beginning.
     const kept = [...td.childNodes].map(n => n.cloneNode(true));
     td.textContent = '';
     span = document.createElement('span');
@@ -2438,7 +2423,6 @@
     headers.forEach((h, i) => {
       if (h === 'user' || h === 'login' || h.startsWith('user ') || h.startsWith('login ')) indexes.push(i);
     });
-    // Pick Tower has User as the last column; fallback protects against translated/styled headers.
     if (!indexes.length && tbl.closest('.pt_zone') && headers.length) indexes.push(headers.length - 1);
     return indexes;
   }
@@ -2473,27 +2457,49 @@
   }
 
   let timer = null;
-  function schedule() {
+  function runApplyNow(reason) {
+    try {
+      const n = applyHighRiskUnderline();
+      window.__PLP_HIGH_RISK_LAST_RUN__ = { reason: reason || 'manual', marked: n, ts: Date.now() };
+      try { if (typeof unsafeWindow !== 'undefined') unsafeWindow.__PLP_HIGH_RISK_LAST_RUN__ = window.__PLP_HIGH_RISK_LAST_RUN__; } catch (_) {}
+      return n;
+    } catch (e) {
+      try { console.warn('[PLP High Risk] apply failed', reason, e); } catch (_) {}
+      return 0;
+    }
+  }
+  function schedule(reason) {
     clearTimeout(timer);
-    timer = setTimeout(() => { try { applyHighRiskUnderline(); } catch (_) {} }, 160);
+    timer = setTimeout(() => runApplyNow(reason || 'scheduled'), 120);
   }
 
   function boot() {
-    schedule();
-    const mo = new MutationObserver(schedule);
-    try { mo.observe(document.body, { childList: true, subtree: true, characterData: true }); } catch (_) {}
-    setInterval(schedule, 3000);
+    [0, 300, 800, 1500, 3000, 6000, 10000, 15000, 25000].forEach(ms => {
+      setTimeout(() => runApplyNow('startup+' + ms + 'ms'), ms);
+    });
+    const mo = new MutationObserver(() => schedule('mutation'));
+    try { mo.observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true }); } catch (_) {}
+    let fastTicks = 0;
+    const fast = setInterval(() => {
+      runApplyNow('fast-interval');
+      if (++fastTicks >= 60) clearInterval(fast);
+    }, 1000);
+    setInterval(() => runApplyNow('slow-interval'), 3000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) schedule('visibility'); }, true);
+    window.addEventListener('focus', () => schedule('focus'), true);
+    document.addEventListener('click', () => schedule('click'), true);
   }
-  if (document.body) boot();
+  if (document.body || document.documentElement) boot();
   else document.addEventListener('DOMContentLoaded', boot, { once: true });
 
-  window.PLP_HIGH_RISK_DIAG = function () {
-    const markedNow = applyHighRiskUnderline();
+  const __plpHighRiskDiag = function () {
+    const markedNow = runApplyNow('diag');
     return {
       source: SOURCE,
       sourceUrl: 'https://cevalogisticsoffice365-my.sharepoint.com/personal/marcin_poborski_cevalogistics_com/Documents/High%20Risk%20permission.xlsx',
       embeddedLogins: HIGH_RISK_LOGINS.size,
       markedNow,
+      lastRun: window.__PLP_HIGH_RISK_LAST_RUN__,
       stats: window.__PLP_HIGH_RISK_LAST_STATS__ && window.__PLP_HIGH_RISK_LAST_STATS__.stats,
       pickTowerTables: document.querySelectorAll('.pt_zone table').length,
       visiblePickTower: [...document.querySelectorAll('.pt_zone table tr td.plp-hr-login-cell')].map(td => plainLoginFromCell(td)).filter(Boolean).slice(0, 30),
@@ -2501,5 +2507,10 @@
       sample: [...HIGH_RISK_LOGINS].slice(0, 12)
     };
   };
+  window.PLP_HIGH_RISK_DIAG = __plpHighRiskDiag;
+  window.PLP_HIGH_RISK_APPLY = runApplyNow;
+  try { if (typeof unsafeWindow !== 'undefined') unsafeWindow.PLP_HIGH_RISK_DIAG = __plpHighRiskDiag; } catch (_) {}
+  try { if (typeof unsafeWindow !== 'undefined') unsafeWindow.PLP_HIGH_RISK_APPLY = runApplyNow; } catch (_) {}
+  try { console.log('[PLP HELPER LOADER MAIN 2.1.33] High Risk auto-apply active. Run PLP_HIGH_RISK_DIAG() or PLP_HIGH_RISK_APPLY() in page console.'); } catch (_) {}
 })();
 
