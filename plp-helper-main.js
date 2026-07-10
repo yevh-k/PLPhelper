@@ -2324,7 +2324,7 @@
 
 /* ╔═══════════════════════════════════════════════════════════════╗
    ║  SECTION 7 – HIGH RISK ACCESS UNDERLINE                      ║
-   ║  Marks/highlights logins with High Risk permission access.    ║
+   ║  Marks High Risk access logins only in Pick tower visualisation.    ║
    ╚═══════════════════════════════════════════════════════════════╝ */
 (function () {
   'use strict';
@@ -2375,7 +2375,7 @@
 
   function applyHighRiskUnderline() {
     let marked = 0;
-    document.querySelectorAll('table').forEach(tbl => {
+    document.querySelectorAll('.pt_zone table').forEach(tbl => {
       const hdr = tbl.querySelector('tr');
       if (!hdr) return;
       const headers = [...hdr.querySelectorAll('th')].map(th => norm(T(th)));
