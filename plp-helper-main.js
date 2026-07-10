@@ -2366,7 +2366,7 @@
   function plainLoginFromCell(td) {
     if (!td) return '';
     const clone = td.cloneNode(true);
-    clone.querySelectorAll('.uph-badge,.eta-picker,.plp-task-badge,.plp-unpr-badge,.plp-idle-badge,.plp-hr-login-text').forEach(x => x.remove());
+    clone.querySelectorAll('.uph-badge,.eta-picker,.plp-task-badge,.plp-unpr-badge,.plp-idle-badge').forEach(x => x.remove());
     return cleanLogin(T(clone));
   }
 
@@ -2453,6 +2453,7 @@
       embeddedLogins: HIGH_RISK_LOGINS.size,
       markedNow: applyHighRiskUnderline(),
       pickTowerTables: document.querySelectorAll('.pt_zone table').length,
+      visibleHighRisk: [...document.querySelectorAll('.pt_zone table tr td.plp-hr-login-cell')].map(td => plainLoginFromCell(td)).filter(Boolean).slice(0, 20),
       sample: [...HIGH_RISK_LOGINS].slice(0, 12)
     };
   };
