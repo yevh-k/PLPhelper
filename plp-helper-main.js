@@ -1,3 +1,15 @@
+// ==UserScript==
+// @name         PLP HELPER + TRSL BRIDGE ✦
+// @namespace    http://tampermonkey.net/
+// @version      2.1.30
+// @description  Nakładka łączona: UPH badges (DOM-persistent), ETA per picker, task badges, Totes in Transit, TRSL Bridge, Units SQL refresh, pick tower WMS prio, High Risk underline. Jeden plik – bez zmian w PLP/TRSL.
+// @author       y.k + merged
+// @match        https://gdcgrafana-eu.logistics.corp/d/dOHkIABY83AGEIHMDTLOPSPRODSTD/ageing-heatmap-detail-prod?orgId=1*
+// @run-at       document-idle
+// @grant        GM_addStyle
+// @grant        GM_notification
+// ==/UserScript==
+
 /* ╔═══════════════════════════════════════════════════════════════╗
    ║  SECTION 1 — TRSL BRIDGE                                     ║
    ║  Слухає повідомлення від PLP (BroadcastChannel/LS).           ║
@@ -1927,7 +1939,7 @@
   window.PLP_DIAG = function () {
  const cache = getCache();
  return {
-  version: '2.1.30-remote',
+  version: '2.1.30',
   refreshMode: trslManualOnly() ? 'manual-refresh-uph-only' : 'overall-auto-refresh-enabled',
   perLoginAutoChecks: false,
   autoPersonalTRSLChecks: false,
@@ -2199,7 +2211,7 @@
 
 /* ╔═══════════════════════════════════════════════════════════════╗
    ║  SECTION 6 – PICK TOWER PRIO DISPLAY                         ║
-   ║  v2.1.29: shows PT Prio as calculated prio / WMS priority     ║
+   ║  Shows PT Prio as calculated prio / WMS priority.             ║
    ╚═══════════════════════════════════════════════════════════════╝ */
 (function () {
   'use strict';
@@ -2212,8 +2224,8 @@
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const css = `
-    .plp-wms-prio-after{font-size:10px;font-weight:700;color:#666;margin-left:2px;white-space:nowrap;}
-    .plp-wms-prio-after.hot{color:rgb(16 84 219);}
+    .plp-wms-prio-after{font-size:10px;font-weight:700;color:#0050b3;margin-left:2px;white-space:nowrap;}
+    .plp-wms-prio-after.hot{color:#b10252;}
     .plp-prio-cell-updated{font-variant-numeric:tabular-nums;}
   `;
   const st = document.createElement('style');
@@ -2222,13 +2234,10 @@
 
   function parsePrioCellText(txt) {
     const s = String(txt || '').replace(/\s+/g, ' ').trim();
-    // Pick Lists table normally uses: "calculatedPrio (WMS_PRIO)".
     let m = s.match(/^(\d+)\s*\((\d+)\)/);
     if (m) return { calc: m[1], wms: m[2] };
-    // Already enhanced or manually changed: "calculatedPrio / WMS_PRIO".
     m = s.match(/^(\d+)\s*\/\s*(\d+)/);
     if (m) return { calc: m[1], wms: m[2] };
-    // Fallback: first two numbers in the cell.
     const nums = s.match(/\d+/g) || [];
     return { calc: nums[0] || '', wms: nums[1] || '' };
   }
@@ -2318,9 +2327,10 @@
 
   window.PLP_PT_PRIO_DIAG = function () {
     const m = buildPrioIndexFromPickLists();
-    return { version: '2.1.30-remote', remote: true, mapSize: m.size, sample: Object.fromEntries([...m.entries()].slice(0, 10)) };
+    return { version: '2.1.30', mapSize: m.size, sample: Object.fromEntries([...m.entries()].slice(0, 10)) };
   };
 })();
+
 
 /* ╔═══════════════════════════════════════════════════════════════╗
    ║  SECTION 7 – HIGH RISK ACCESS UNDERLINE                      ║
@@ -2409,7 +2419,6 @@
       headers.forEach((h, i) => {
         if (h === 'user' || h === 'login' || h.startsWith('user ') || h.startsWith('login ')) userIndexes.push(i);
       });
-      // Pick tower visualisation has User as the last column; fallback covers headers rendered differently.
       if (!userIndexes.length && headers.length) userIndexes = [headers.length - 1];
 
       [...tbl.querySelectorAll('tr')].slice(1).forEach(row => {
